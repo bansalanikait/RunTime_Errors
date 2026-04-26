@@ -26,7 +26,23 @@ async def call_llm(prompt: str, schema_class: Optional[Type[T]] = None) -> Any:
 
     system_message = "You are a helpful assistant."
     if schema_class:
-        system_message += f"\nYou must reply with valid JSON conforming to this schema:\n{schema_class.model_json_schema()}"
+        # Build a simple {field: type} example instead of the full JSON Schema,
+        # because small local models often parrot the raw schema back.
+        schema = schema_class.model_json_schema()
+        fields = schema.get("properties", {})
+        example = {}
+        for k, v in fields.items():
+            ftype = v.get("type", "string")
+            if ftype == "array":
+                example[k] = ["example1", "example2"]
+            else:
+                example[k] = f"<{ftype}>"
+        system_message += (
+            f"\nYou must reply ONLY with a valid JSON object. "
+            f"Do NOT return the schema definition. "
+            f"Every array field must contain plain strings, NOT objects. "
+            f"Return actual values in this exact shape:\n{json.dumps(example, indent=2)}"
+        )
 
     payload = {
         "model": model_name,
