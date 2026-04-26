@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from uuid import UUID
 from app.core.database import get_session
 from app.core.models import Session, DecoyAsset
 from app.core.base import (
@@ -86,16 +85,12 @@ async def get_attack_detail(
     **FROZEN CONTRACT**: Do not change response shape.
     
     Path Parameters:
-    - session_id: UUID of session
+    - session_id: UUID string of session
     
     Response: AttackDetailResponse
     """
-    try:
-        session_uuid = UUID(session_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid session_id format")
-    
-    stmt = select(Session).where(Session.id == session_uuid)
+    # Query by string ID (DB stores as String(36), not UUID)
+    stmt = select(Session).where(Session.id == session_id)
     result = await session.execute(stmt)
     sess = result.scalar_one_or_none()
     

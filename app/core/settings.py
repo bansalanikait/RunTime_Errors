@@ -1,6 +1,7 @@
 """Application settings and configuration."""
 
 from pydantic_settings import BaseSettings
+from pydantic import Field
 from pathlib import Path
 
 
@@ -17,8 +18,11 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
     debug: bool = True
 
+    # Base path for templates and static files
+    base_path: Path = Field(default_factory=lambda: Path(__file__).parent.parent.parent)
+
     # Database
-    database_url: str = "sqlite:///./deceptra.db"
+    database_url: str = Field(default_factory=lambda: f"sqlite:///{Path(__file__).parent.parent.parent.as_posix()}/deceptra.db")
     
     # Request logging
     max_body_log_size: int = 10000  # bytes; requests larger than this are truncated
@@ -30,9 +34,6 @@ class Settings(BaseSettings):
 
     # CORS
     cors_origins: list = ["*"]
-
-    # Base path for templates and static files
-    base_path: Path = Path(__file__).parent.parent.parent
 
     class Config:
         env_file = ".env"
