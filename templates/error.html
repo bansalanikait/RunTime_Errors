@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error - DECEPTRA Application</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .error-container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .error-header {
+            background: #1e1e1e;
+            border-bottom: 2px solid #d16969;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .error-icon {
+            font-size: 28px;
+            color: #d16969;
+        }
+        
+        .error-header h1 {
+            color: #d16969;
+            font-size: 24px;
+        }
+        
+        .error-body {
+            padding: 20px;
+        }
+        
+        .traceback {
+            background: #1e1e1e;
+            padding: 15px;
+            border-left: 3px solid #d16969;
+            border-radius: 3px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+            color: #ce9178;
+        }
+        
+        .traceback-line {
+            margin: 5px 0;
+        }
+        
+        .file-path {
+            color: #4fc1ff;
+        }
+        
+        .function-name {
+            color: #dcdcaa;
+        }
+        
+        .line-number {
+            color: #858585;
+        }
+        
+        .error-type {
+            color: #d16969;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            color: #ce9178;
+            margin-top: 10px;
+        }
+        
+        .details {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1e1e1e;
+            border-left: 3px solid #4fc1ff;
+            border-radius: 3px;
+        }
+        
+        .details dt {
+            color: #9cdcfe;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .details dd {
+            color: #ce9178;
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-header">
+            <div class="error-icon">⚠️</div>
+            <div>
+                <h1>500 Internal Server Error</h1>
+            </div>
+        </div>
+        
+        <div class="error-body">
+            <div class="traceback">
+<span class="traceback-line"><span class="file-path">File "/app/services/payment.py"</span>, line <span class="line-number">89</span>, in <span class="function-name">process_transaction</span></span>
+<span class="traceback-line">    db_session.query(Order).filter(Order.id == order_id).update({'status': 'paid'})</span>
+<span class="traceback-line"><span class="error-type">sqlalchemy.exc.DatabaseError</span>: <span class="error-message">Connection lost to primary database at 10.0.1.42:5432</span></span>
+
+<span class="traceback-line">Traceback (most recent call last):</span>
+<span class="traceback-line">  <span class="file-path">File "/app/main.py"</span>, line <span class="line-number">156</span>, in <span class="function-name">app.run</span>()</span>
+<span class="traceback-line">    loop.run_until_complete(main())</span>
+<span class="traceback-line">  <span class="file-path">File "/asyncio/base_events.py"</span>, line <span class="line-number">567</span>, in <span class="function-name">run_until_complete</span></span>
+<span class="traceback-line">    return future.result()</span>
+<span class="traceback-line">  <span class="file-path">File "/app/bootstrap.py"</span>, line <span class="line-number">78</span>, in <span class="function-name">main</span>()</span>
+<span class="traceback-line">    config = load_config_from_vault('PROD')</span>
+<span class="traceback-line">  <span class="file-path">File "/app/vault.py"</span>, line <span class="line-number">45</span>, in <span class="function-name">load_config_from_vault</span>()</span>
+<span class="traceback-line">    auth_response = requests.post("https://vault.internal:8200/v1/auth/ldap/login")</span>
+<span class="traceback-line"><span class="error-type">requests.ConnectionError</span>: <span class="error-message">Failed to connect to vault.internal: Name resolution failed</span></span>
+            </div>
+            
+            <div class="details">
+                <dl>
+                    <dt>Server:</dt>
+                    <dd>DECEPTRA v1.0.0</dd>
+                    
+                    <dt>Request ID:</dt>
+                    <dd>550e8400-e29b-41d4-a716-446655440000</dd>
+                    
+                    <dt>Timestamp:</dt>
+                    <dd id="error-time"></dd>
+                    
+                    <dt>Support:</dt>
+                    <dd><a href="mailto:support@deceptra.local">support@deceptra.local</a></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('error-time').textContent = new Date().toISOString();
+    </script>
+</body>
+</html>
