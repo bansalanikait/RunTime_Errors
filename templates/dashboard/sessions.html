@@ -1,0 +1,87 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Sessions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Attack Sessions</h2>
+    <p>All captured honeypot sessions with filtering</p>
+</div>
+
+<div class="page-body">
+    <!-- Filters -->
+    <div class="filters-bar">
+        <input type="text" class="filter-input" id="filter-ip" placeholder="🔍 Filter by IP address...">
+        <input type="text" class="filter-input" id="filter-tag" placeholder="🏷️ Filter by tag...">
+        <select class="filter-select" id="filter-type">
+            <option value="all">All Types</option>
+            <option value="automated">🤖 Automated Only</option>
+            <option value="manual">👤 Manual Only</option>
+        </select>
+    </div>
+
+    <!-- Sessions Table -->
+    <div id="sessions-table-container">
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>First Seen</th>
+                        <th>Last Seen</th>
+                        <th>Requests</th>
+                        <th>Type</th>
+                        <th>Tags</th>
+                    </tr>
+                </thead>
+                <tbody id="sessions-table-body">
+                    <tr><td colspan="6"><div class="skeleton skeleton-row"></div></td></tr>
+                    <tr><td colspan="6"><div class="skeleton skeleton-row"></div></td></tr>
+                    <tr><td colspan="6"><div class="skeleton skeleton-row"></div></td></tr>
+                    <tr><td colspan="6"><div class="skeleton skeleton-row"></div></td></tr>
+                    <tr><td colspan="6"><div class="skeleton skeleton-row"></div></td></tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <span class="pagination-info" id="pagination-info">Loading...</span>
+                <div class="pagination-controls">
+                    <button class="btn btn-secondary" id="btn-prev" disabled>← Previous</button>
+                    <button class="btn btn-primary" id="btn-next" disabled>Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden template for table restoration after empty/error state -->
+<template id="table-template">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>First Seen</th>
+                    <th>Last Seen</th>
+                    <th>Requests</th>
+                    <th>Type</th>
+                    <th>Tags</th>
+                </tr>
+            </thead>
+            <tbody id="sessions-table-body"></tbody>
+        </table>
+        <div class="pagination">
+            <span class="pagination-info" id="pagination-info"></span>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary" id="btn-prev" disabled>← Previous</button>
+                <button class="btn btn-primary" id="btn-next" disabled>Next →</button>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/sessions.js"></script>
+{% endblock %}

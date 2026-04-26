@@ -1,0 +1,36 @@
+You are contributing to a project called DECEPTRA, a modular monolith web app. Global architecture rules:
+
+Tech stack: Python 3+ FastAPI backend, Jinja2 templates, SQLite, simple HTML/CSS/JS frontend (no heavy framework unless explicitly requested).
+
+Folder structure (do not change this):
+
+app/core/ - settings, DB connection, base models
+
+app/routes/ - FastAPI routers (HTTP endpoints)
+
+app/decoys/ - decoy asset definitions &helpers
+
+app/analyzer/ - scoring, tagging, spider trap logic
+app/ai/ - AI integration, prompt/response handling, JSON schemas
+
+templates/ – Jinja2 HTML templates
+
+static/- CSS/JS/assets
+
+Do not move or rename existing modules, functions, or classes unless explicitly asked.
+
+Do not create new top-level folders; work only inside your assigned folders.
+
+Backend → frontend communication uses explicit JSON API contracts. Do not change existing response shapes without clearly showing the diff. API contracts must remain stable so frontend and backend can be developed in parallel. 2
+
+All new code must be:
+
+consistent with existing naming and style,
+
+tested via at least one minimal example
+
+(e.g., simple FastAPI endpoint test or local function call),
+
+documented with short docstrings for public functions.
+
+Do not implement your own "AI agents inside the app"; you are just generating normal, deterministic code that will call external LLM APIs where needed.
