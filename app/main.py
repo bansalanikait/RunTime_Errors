@@ -73,6 +73,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             from app.core.database import async_session_maker
 
             async with async_session_maker() as session:
+                is_trap_hit = getattr(request.state, "is_trap_hit", False)
                 await log_request_to_db(
                     ip=request.client.host if request.client else "unknown",
                     method=request.method,
@@ -83,6 +84,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     status=response.status_code,
                     duration_ms=duration_ms,
                     session=session,
+                    is_trap_hit=is_trap_hit,
                 )
             logger.info(f"[MIDDLEWARE] Successfully logged request")
         except Exception as e:
@@ -105,6 +107,13 @@ async def lifespan(app: FastAPI):
     print(f"🚀 Starting {settings.app_name} v{settings.app_version}...")
     await init_db()
     print("✅ Database initialized")
+    
+    from app.core.database import async_session_maker
+    from app.decoys.spider_traps import register_spider_trap
+    async with async_session_maker() as session:
+        await register_spider_trap(session, "/hidden/admin-portal", "Default admin portal trap")
+        await register_spider_trap(session, "/robots-bait", "Default robots.txt bait trap")
+    print("✅ Default spider traps registered")
     
     yield
     
@@ -133,13 +142,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
-app.include_router(honeypots.router)
-app.include_router(api_decoys.router)
-app.include_router(dashboard_routes.router)
-
 # Mount static files (CSS, JS, assets)
 app.mount("/static", StaticFiles(directory=str(settings.base_path / "static")), name="static")
+
+# Register routers
+app.include_router(api_decoys.router)
+app.include_router(dashboard_routes.router)
+app.include_router(honeypots.router)
 
 
 # Root endpoint

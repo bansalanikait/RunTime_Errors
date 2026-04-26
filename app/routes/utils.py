@@ -34,6 +34,7 @@ async def log_request_to_db(
     status: int,
     duration_ms: int,
     session: AsyncSession,
+    is_trap_hit: bool = False,
 ) -> None:
     """
     Log an HTTP request to the database.
@@ -97,10 +98,23 @@ async def log_request_to_db(
             response_status=status,
             duration_ms=duration_ms,
             timestamp=datetime.utcnow(),
+            is_trap_hit=is_trap_hit,
         )
         
         session.add(req)
+        await session.flush()
         logger.info(f"[LOG_REQUEST] Created request record: {req.id}")
+        
+        # Analyze session to update risk score and tags
+        stmt_reqs = select(Request).where(Request.session_id == sess.id)
+        result_reqs = await session.execute(stmt_reqs)
+        all_reqs = result_reqs.scalars().all()
+        
+        from app.analyzer.rules import analyze_session
+        risk_score, tags, is_automated = analyze_session(all_reqs)
+        
+        sess.tags = ",".join(tags)[:200] if tags else None
+        sess.is_automated = is_automated
         
         await session.commit()
         logger.info(f"[LOG_REQUEST] Committed to database successfully")

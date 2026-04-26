@@ -351,3 +351,55 @@ async def fake_api_login():
         "message": "Unauthorized",
         "details": "Invalid API key or credentials"
     })
+
+
+@router.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
+async def catch_all_honeypot(request: Request, full_path: str):
+    """Catch-all wildcard route for undefined endpoints."""
+    path = f"/{full_path}"
+    
+    # Check against traps
+    from app.decoys.spider_traps import get_all_traps
+    from app.core.database import async_session_maker
+    import re
+    
+    async with async_session_maker() as db:
+        traps = await get_all_traps(db)
+        is_trap = False
+        for trap in traps:
+            if path == trap.path_pattern or re.search(trap.path_pattern, path):
+                is_trap = True
+                break
+                
+        if is_trap:
+            request.state.is_trap_hit = True
+            
+            # AI Hallucination layer
+            from app.ai.generator import generate_fake_response
+            from app.ai.schemas import SiteProfile
+            import logging
+            
+            dummy_profile = SiteProfile(
+                name="Corporate Admin Portal",
+                theme="Enterprise Dashboard",
+                stack_hints=["PHP", "React", "Nginx"],
+                important_paths=["/admin", "/wp-login.php", "/.env"]
+            )
+            
+            req_details = {
+                "method": request.method,
+                "path": path,
+                "headers": dict(request.headers)
+            }
+            
+            try:
+                ai_html = await generate_fake_response("spider_trap_hit", req_details, dummy_profile)
+                return HTMLResponse(content=ai_html, status_code=200)
+            except Exception as e:
+                logging.getLogger(__name__).error(f"AI trap generation failed: {e}")
+                # Fallback to static 404
+            
+    return JSONResponse(status_code=404, content={
+        "error": "Not Found", 
+        "message": "The requested resource does not exist."
+    })

@@ -13,6 +13,8 @@ from app.core.base import (
     SessionSummarySchema,
     RequestInfoSchema,
 )
+from app.ai.generator import summarize_session
+from app.ai.schemas import ForensicSummary
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -101,6 +103,34 @@ async def get_attack_detail(
     requests = [RequestInfoSchema.from_orm(r) for r in sess.requests]
     
     return AttackDetailResponse(session=sess_summary, requests=requests)
+
+
+@router.get("/attacks/{session_id}/summary")
+async def get_attack_summary(
+    session_id: str,
+    session: AsyncSession = Depends(get_session),
+) -> ForensicSummary:
+    """
+    Get an AI-generated forensic summary for a specific attacker session.
+    """
+    # Query by string ID
+    stmt = select(Session).where(Session.id == session_id)
+    result = await session.execute(stmt)
+    sess = result.scalar_one_or_none()
+    
+    if not sess:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    requests_data = [RequestInfoSchema.from_orm(r).dict() for r in sess.requests]
+    session_data = [{
+        "id": sess.id,
+        "ip_address": sess.ip_address,
+        "tags": sess.tags,
+        "requests": requests_data
+    }]
+    
+    summary = await summarize_session(session_data)
+    return summary
 
 
 @router.post("/decoys")
