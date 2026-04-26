@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} — DECEPTRA</title>
+    <meta name="description" content="DECEPTRA honeypot dashboard — monitor and analyze attack sessions">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>DECEPTRA</h1>
+                <span>Honeypot Dashboard</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-link {% if active_page == 'overview' %}active{% endif %}" id="nav-overview">
+                    <span class="icon">📊</span>
+                    Overview
+                </a>
+                <a href="/dashboard/sessions" class="nav-link {% if active_page == 'sessions' %}active{% endif %}" id="nav-sessions">
+                    <span class="icon">🔍</span>
+                    Sessions
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="health-indicator">
+                    <div class="health-dot" id="health-dot"></div>
+                    <span id="health-label">Checking...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Shared JS (must load first) -->
+    <script src="/static/js/dashboard.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

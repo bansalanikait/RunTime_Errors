@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
 import time
@@ -11,6 +12,7 @@ from app.core.settings import settings
 from app.core.database import init_db, close_db
 from app.routes.utils import log_request_to_db
 from app.routes import honeypots, api_decoys
+from app.routes import dashboard as dashboard_routes
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -121,6 +123,10 @@ app.add_middleware(
 # Register routers
 app.include_router(honeypots.router)
 app.include_router(api_decoys.router)
+app.include_router(dashboard_routes.router)
+
+# Mount static files (CSS, JS, assets)
+app.mount("/static", StaticFiles(directory=str(settings.base_path / "static")), name="static")
 
 
 # Root endpoint

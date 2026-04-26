@@ -1,0 +1,53 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Overview</h2>
+    <p>Real-time honeypot statistics and recent activity</p>
+</div>
+
+<div class="page-body">
+    <!-- Stats Grid (populated by JS) -->
+    <div class="stats-grid" id="stats-grid">
+        <div class="skeleton skeleton-stat"></div>
+        <div class="skeleton skeleton-stat"></div>
+        <div class="skeleton skeleton-stat"></div>
+        <div class="skeleton skeleton-stat"></div>
+    </div>
+
+    <!-- Recent Sessions -->
+    <div class="section">
+        <div class="section-header">
+            <h3>Recent Sessions</h3>
+            <a href="/dashboard/sessions" class="view-all">View all →</a>
+        </div>
+
+        <div id="recent-sessions-container">
+            <div class="table-container">
+                <table class="data-table" id="recent-sessions-table">
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Last Activity</th>
+                            <th>Requests</th>
+                            <th>Type</th>
+                            <th>Tags</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-sessions-body">
+                        <tr><td colspan="5"><div class="skeleton skeleton-row"></div></td></tr>
+                        <tr><td colspan="5"><div class="skeleton skeleton-row"></div></td></tr>
+                        <tr><td colspan="5"><div class="skeleton skeleton-row"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/overview.js"></script>
+{% endblock %}
