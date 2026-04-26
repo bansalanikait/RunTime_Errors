@@ -1,11 +1,14 @@
 """Request logging utilities with database persistence."""
 
 import json
+import logging
 from datetime import datetime
 from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.models import Session, Request
+
+logger = logging.getLogger(__name__)
 
 
 def sanitize_headers(headers: dict) -> dict:
@@ -50,6 +53,9 @@ async def log_request_to_db(
         session: SQLAlchemy async session
     """
     try:
+        print(f"\n🟡 LOG_REQUEST called for {ip} {method} {path}")
+        logger.info(f"[LOG_REQUEST] Starting log for {ip} {method} {path}")
+        
         # Find or create session by IP
         stmt = select(Session).where(
             Session.ip_address == ip
@@ -57,11 +63,13 @@ async def log_request_to_db(
         
         result = await session.execute(stmt)
         sess = result.scalar_one_or_none()
+        logger.info(f"[LOG_REQUEST] Found existing session: {sess is not None}")
         
         if not sess:
             # New session
+            logger.info(f"[LOG_REQUEST] Creating new session for IP {ip}")
             sess = Session(
-                id=uuid4(),
+                id=str(uuid4()),
                 ip_address=ip,
                 user_agent=headers.get("user-agent", "")[:500],
                 request_count=1,
@@ -70,14 +78,16 @@ async def log_request_to_db(
             )
             session.add(sess)
             await session.flush()  # Get the ID before creating request
+            logger.info(f"[LOG_REQUEST] Created new session: {sess.id}")
         else:
             # Update existing session
+            logger.info(f"[LOG_REQUEST] Updating existing session: {sess.id}")
             sess.request_count += 1
             sess.last_request_at = datetime.utcnow()
         
         # Create request record
         req = Request(
-            id=uuid4(),
+            id=str(uuid4()),
             session_id=sess.id,
             method=method,
             path=path,
@@ -90,8 +100,11 @@ async def log_request_to_db(
         )
         
         session.add(req)
+        logger.info(f"[LOG_REQUEST] Created request record: {req.id}")
+        
         await session.commit()
+        logger.info(f"[LOG_REQUEST] Committed to database successfully")
     except Exception as e:
         # Log error but don't crash the request handler
-        print(f"Error logging request: {e}")
+        logger.error(f"[LOG_REQUEST] Error logging request: {e}", exc_info=True)
         await session.rollback()

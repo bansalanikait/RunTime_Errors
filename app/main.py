@@ -7,6 +7,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
 import time
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.core.settings import settings
 from app.core.database import init_db, close_db
@@ -30,9 +33,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     
     Runs for all requests, including honeypot endpoints and API calls.
     """
+    
+    def __init__(self, app):
+        super().__init__(app)
+        print("\n🟢 RequestLoggingMiddleware initialized!")
 
     async def dispatch(self, request: Request, call_next):
+        print(f"\n🔴 MIDDLEWARE CALLED: {request.method} {request.url.path}")
         start_time = time.time()
+        logger.info(f"[MIDDLEWARE] Intercepting {request.method} {request.url.path}")
 
         # Capture request body (only for POST/PUT/PATCH)
         request_body = ""
@@ -40,8 +49,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             try:
                 body_bytes = await request.body()
                 request_body = body_bytes.decode("utf-8", errors="ignore")
-            except Exception:
-                pass
+                logger.info(f"[MIDDLEWARE] Captured body: {len(request_body)} bytes")
+            except Exception as e:
+                logger.error(f"[MIDDLEWARE] Failed to read body: {e}", exc_info=True)
 
             # Create a new receive callable to allow body re-reading by handlers
             async def receive():
@@ -57,6 +67,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Log to database (non-blocking)
         try:
+            logger.info(f"[MIDDLEWARE] Logging {request.method} {request.url.path} (status={response.status_code})")
+            
             # Get a session for logging
             from app.core.database import async_session_maker
 
@@ -72,8 +84,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     duration_ms=duration_ms,
                     session=session,
                 )
+            logger.info(f"[MIDDLEWARE] Successfully logged request")
         except Exception as e:
-            print(f"Error in request logging middleware: {e}")
+            logger.error(f"[MIDDLEWARE] Error logging request: {e}", exc_info=True)
 
         return response
 
