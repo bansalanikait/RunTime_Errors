@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list = ["*"]
 
+    # AI Settings
+    llm_api_key: str = "local-key-fallback"
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_model_name: str = "gpt-3.5-turbo"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
