@@ -25,38 +25,49 @@ Before running the system, ensure your environment is configured properly.
 ### 2. Running the Honeypot Server
 To start the traps and begin listening for attacks, run the Uvicorn server.
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 80 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-* **What this does:** Starts the FastAPI application. The `--reload` flag ensures that any changes you make to the Python code are instantly applied without needing to restart the server. The `RequestLoggingMiddleware` immediately begins intercepting all traffic.
+* **What this does:** Starts the FastAPI application on port 8000. The `--reload` flag ensures that any changes you make to the Python code are instantly applied without needing to restart the server. The `RequestLoggingMiddleware` immediately begins intercepting all traffic.
 
 ### 3. Viewing the Dashboard (Visual Threat Intel)
 You don't need to read raw JSON in the terminal! DECEPTRA includes a built-in UI.
 1. Open your web browser.
-2. Navigate to: `http://localhost/dashboard`
-* **What this does:** Loads the Jinja2 HTML templates and automatically fetches the latest threat intelligence data, displaying attacker IPs, Tags, Risk Scores, and session details.
+2. Navigate to: `http://localhost:8000/dashboard/sessions`
+* **Features:** 
+  * The main table displays the Attacker IP, Timestamp, Tags, and the attacker's **User-Agent** (so you can spot scripts vs humans).
+  * Clicking on an individual session opens the **Timeline View**.
+  * Expanding a row in the timeline reveals the exact **Raw Headers** (yellow), **Request Payloads/Passwords** (red), and **Honeypot Responses** (blue).
+  * Click the **Generate AI Summary ✨** button to automatically generate a full forensic report using your local LLM.
 
 ### 4. Running the Bot Simulator
-To test your honeypot without waiting for a real hacker to find it, you can simulate an attack.
+To test your honeypot without waiting for a real hacker to find it, you can simulate an automated attack.
 ```bash
-python tests/simulate_bot.py http://localhost:80
+python tests/simulate_bot.py http://localhost:8000
 ```
 * **What this does:** The script acts as an automated scanner. It probes for `.env` files, attempts SQL injections, tries Cross-Site Scripting (XSS), brute-forces the `/login` endpoint, and intentionally falls into hidden spider traps.
 
-### 5. Using the API Endpoints (Data Extraction)
+### 5. Manual Attack Simulation (The "Outside" Hack)
+You can attack your own server manually from a separate terminal using `curl.exe` to see how DECEPTRA catches you:
+* **Reconnaissance Probe:** `curl.exe http://localhost:8000/.env`
+* **SQL Injection:** `curl.exe "http://localhost:8000/users?id=1' OR '1'='1"`
+* **Brute Force Post:** `curl.exe -X POST http://localhost:8000/login -d "username=admin&password=SuperSecretPassword"`
+* **Spider Trap:** `curl.exe http://localhost:8000/hidden/admin-portal`
+
+### 6. Using the API Endpoints (Data Extraction)
 If you want to pull the raw data out of DECEPTRA for a custom application (like `admin.html`) or a SIEM tool, use these endpoints:
 
 * **List all Attacker Sessions:**
   ```bash
-  curl http://localhost/api/attacks
+  curl http://localhost:8000/api/attacks
   ```
 * **View Full Forensic Timeline of a Session:**
   *(Replace the UUID with one from the list above)*
   ```bash
-  curl http://localhost/api/attacks/cefba455-b21b-4ed2-9330-066c43c42309
+  curl http://localhost:8000/api/attacks/cefba455-b21b-4ed2-9330-066c43c42309
   ```
 * **Generate AI Forensic Summary:**
   ```bash
-  curl http://localhost/api/attacks/cefba455-b21b-4ed2-9330-066c43c42309/summary
+  curl http://localhost:8000/api/attacks/cefba455-b21b-4ed2-9330-066c43c42309/summary
   ```
 
 ### 6. Running the Unit Tests
