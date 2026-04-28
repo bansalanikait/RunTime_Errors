@@ -43,6 +43,6 @@ Below is the structured view of the session (list of requests + tags):
 {session_str}
 
 Produce a concise, security-analyst-style forensic summary.
-Include a headline, a detailed narrative description, suspected tools/techniques, and mitigation recommendations.
-Respond ONLY with valid JSON matching the required schema.
+CRITICAL: You MUST provide values for all fields: 'headline', 'description', 'suspected_techniques', and 'recommendations'.
+Do NOT skip any fields. Respond ONLY with valid JSON matching the required schema.
 """

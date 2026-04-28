@@ -45,6 +45,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="value">${DeceptraUI.automatedBadge(session.is_automated)}</span>
                     </div>
                     <div class="detail-item">
+                        <span class="label">User-Agent</span>
+                        <span class="value" style="font-family: monospace; font-size: 0.85em; word-break: break-all;">${DeceptraUI.escapeHtml(session.user_agent || 'Unknown')}</span>
+                    </div>
+                    <div class="detail-item">
                         <span class="label">Tags</span>
                         <span class="value">${DeceptraUI.tagBadges(session.tags)}</span>
                     </div>
@@ -73,16 +77,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                             ${r.query_string ? `<span>❓ ${DeceptraUI.escapeHtml(r.query_string)}</span>` : ''}
                         </div>
                         <div class="timeline-detail" id="detail-${i}">
-                            <pre>${JSON.stringify({
-                                id: r.id,
-                                session_id: r.session_id,
-                                method: r.method,
-                                path: r.path,
-                                query_string: r.query_string,
-                                response_status: r.response_status,
-                                duration_ms: r.duration_ms,
-                                is_trap_hit: r.is_trap_hit
-                            }, null, 2)}</pre>
+                            <div class="raw-data-section">
+                                <strong>Request Details:</strong>
+                                <pre>${JSON.stringify({
+                                    id: r.id,
+                                    session_id: r.session_id,
+                                    method: r.method,
+                                    path: r.path,
+                                    query_string: r.query_string,
+                                    response_status: r.response_status,
+                                    duration_ms: r.duration_ms,
+                                    is_trap_hit: r.is_trap_hit
+                                }, null, 2)}</pre>
+                                
+                                ${r.headers_json ? `
+                                <strong style="margin-top: 10px; display: block; color: #ffcc00;">Raw Headers:</strong>
+                                <pre style="border-left: 3px solid #ffcc00;">${DeceptraUI.escapeHtml(r.headers_json)}</pre>
+                                ` : ''}
+
+                                ${r.body ? `
+                                <strong style="margin-top: 10px; display: block; color: #ff4444;">Request Body (Payload):</strong>
+                                <pre style="border-left: 3px solid #ff4444;">${DeceptraUI.escapeHtml(r.body)}</pre>
+                                ` : ''}
+
+                                ${r.response_body ? `
+                                <strong style="margin-top: 10px; display: block; color: #00d2ff;">Response Body:</strong>
+                                <pre style="border-left: 3px solid #00d2ff; max-height: 200px; overflow-y: auto;">${DeceptraUI.escapeHtml(r.response_body)}</pre>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>`).join('')}
             </div>`;
@@ -91,6 +113,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
         if (headerCard) DeceptraUI.showError(headerCard, err.message);
         if (timelineContainer) DeceptraUI.showError(timelineContainer, 'Failed to load request chain');
+    }
+
+    // AI Summary Logic
+    const summaryBtn = document.getElementById('btn-generate-summary');
+    const summaryContainer = document.getElementById('ai-summary-container');
+    const summaryContent = document.getElementById('ai-summary-content');
+
+    if (summaryBtn) {
+        summaryBtn.addEventListener('click', async () => {
+            summaryBtn.disabled = true;
+            summaryBtn.innerHTML = 'Generating... (Takes ~10s) ⏳';
+            summaryContainer.style.display = 'block';
+            summaryContent.innerHTML = '<div class="skeleton skeleton-row"></div><div class="skeleton skeleton-row"></div>';
+
+            try {
+                const response = await fetch(`/api/attacks/${sessionId}/summary`);
+                const data = await response.json();
+                
+                if (data.headline === "AI Analysis Unavailable") {
+                    summaryContent.innerHTML = `
+                        <h4 style="color: #ff4444;">⚠️ ${DeceptraUI.escapeHtml(data.headline)}</h4>
+                        <p>${DeceptraUI.escapeHtml(data.description)}</p>
+                        <p style="color: #aaa;"><i>${DeceptraUI.escapeHtml(data.recommendations[0] || data.recommendations)}</i></p>
+                    `;
+                } else {
+                    summaryContent.innerHTML = `
+                        <h4 style="color: #00d2ff; margin-bottom: 10px;">${DeceptraUI.escapeHtml(data.headline)}</h4>
+                        <p style="margin-bottom: 15px; line-height: 1.5;">${DeceptraUI.escapeHtml(data.description)}</p>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <strong style="color: #ffcc00;">Detected Techniques:</strong>
+                            <div style="margin-top: 5px;">
+                                ${data.suspected_techniques.map(t => `<span class="badge" style="background: rgba(255, 204, 0, 0.2); color: #ffcc00; border: 1px solid #ffcc00;">${DeceptraUI.escapeHtml(t)}</span>`).join(' ')}
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 15px;">
+                            <strong style="color: #00d2ff;">Recommendations:</strong>
+                            <ul style="margin-top: 5px; padding-left: 20px; color: #ccc;">
+                                ${data.recommendations.map(r => `<li>${DeceptraUI.escapeHtml(r)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                summaryContent.innerHTML = `<p style="color: #ff4444;">Failed to load summary: ${err.message}</p>`;
+            } finally {
+                summaryBtn.innerHTML = 'Generate AI Summary ✨';
+                summaryBtn.disabled = false;
+            }
+        });
     }
 });
 

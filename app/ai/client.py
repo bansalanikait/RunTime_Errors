@@ -1,13 +1,13 @@
-import os
 import json
 import httpx
 from typing import Type, TypeVar, Optional, Any
 from pydantic import BaseModel
+from app.core.settings import settings
 
 T = TypeVar("T", bound=BaseModel)
 
 # Module level HTTP client for efficient reuse.
-_client = httpx.AsyncClient(timeout=30.0)
+_client = httpx.AsyncClient(timeout=90.0)
 
 async def call_llm(prompt: str, schema_class: Optional[Type[T]] = None) -> Any:
     """
@@ -15,9 +15,9 @@ async def call_llm(prompt: str, schema_class: Optional[Type[T]] = None) -> Any:
     If schema_class is provided, it validates and returns that Pydantic model.
     Otherwise, returns the raw text response.
     """
-    api_key = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", "local-key-fallback"))
-    base_url = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
-    model_name = os.getenv("LLM_MODEL_NAME", "gpt-3.5-turbo")
+    api_key = settings.llm_api_key
+    base_url = settings.effective_llm_base_url
+    model_name = settings.llm_model_name
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -44,24 +44,48 @@ async def call_llm(prompt: str, schema_class: Optional[Type[T]] = None) -> Any:
             f"Return actual values in this exact shape:\n{json.dumps(example, indent=2)}"
         )
 
+    # Native Ollama API endpoint
+    endpoint = f"{base_url.replace('/v1', '')}/api/chat"
+    
+    print(f"[AI] Calling {model_name} at {endpoint}...")
+    
     payload = {
         "model": model_name,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.2
+        "stream": False,
+        "options": {
+            "temperature": 0.2,
+            "num_predict": 500  # Limit response length to prevent infinite loops
+        }
     }
 
     # Request JSON object if schema is provided
     if schema_class:
-        payload["response_format"] = {"type": "json_object"}
+        payload["format"] = "json"
 
     try:
-        response = await _client.post(f"{base_url}/chat/completions", json=payload, headers=headers)
+        response = await _client.post(endpoint, json=payload, headers=headers)
+        print(f"[AI] Response received (status: {response.status_code})")
+        
+        if response.status_code == 404:
+            # Helpful hint for Ollama users
+            raise RuntimeError(f"LLM endpoint not found (404). If using Ollama, ensure it is running and the base URL includes '/v1' (e.g., http://localhost:11434/v1).")
+        elif response.status_code == 401:
+            raise RuntimeError(f"LLM authentication failed (401). Check your API key in .env.")
+            
         response.raise_for_status()
         data = response.json()
-        content = data["choices"][0]["message"]["content"]
+        
+        # Parse based on native Ollama format
+        if "message" in data:
+            content = data["message"]["content"]
+        elif "choices" in data:
+            content = data["choices"][0]["message"]["content"]
+        else:
+            raise ValueError(f"Unknown LLM response format: {data}")
 
         if schema_class:
             try:
@@ -77,5 +101,9 @@ async def call_llm(prompt: str, schema_class: Optional[Type[T]] = None) -> Any:
         else:
             return content
             
+    except httpx.ConnectError:
+        raise RuntimeError(f"Could not connect to LLM at {base_url}. Is the service running?")
     except Exception as e:
+        if "RuntimeError" in str(type(e)):
+             raise e
         raise RuntimeError(f"LLM call failed: {str(e)}")

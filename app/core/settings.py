@@ -43,4 +43,26 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
+    @property
+    def effective_llm_base_url(self) -> str:
+        """
+        Returns the LLM base URL, automatically resolving 'localhost' to the 
+        Windows host IP if running inside WSL.
+        """
+        url = self.llm_base_url
+        if "localhost" in url or "127.0.0.1" in url:
+            import os
+            # Check if we are in WSL
+            if os.path.exists("/proc/version") and "microsoft" in open("/proc/version").read().lower():
+                try:
+                    # Get host IP from resolv.conf
+                    with open("/etc/resolv.conf", "r") as f:
+                        for line in f:
+                            if "nameserver" in line:
+                                host_ip = line.split()[1]
+                                return url.replace("localhost", host_ip).replace("127.0.0.1", host_ip)
+                except Exception:
+                    pass
+        return url
+
 settings = Settings()

@@ -21,7 +21,7 @@ class DecoyAssetList(BaseModel):
 
 class ForensicSummary(BaseModel):
     """Fields for summarizing a session."""
-    headline: str = Field(description="A short, catchy headline for the session summary")
-    description: str = Field(description="A detailed narrative of the session and actor behavior")
-    suspected_techniques: List[str] = Field(description="List of suspected attack techniques or tools used")
-    recommendations: str = Field(description="Suggested response or mitigation strategies")
+    headline: str = Field(default="Session Summary", description="A short headline for the session summary")
+    description: str = Field(default="No detailed description provided by AI.", description="A detailed narrative of the session")
+    suspected_techniques: List[str] = Field(default_factory=list, description="List of suspected attack techniques")
+    recommendations: List[str] = Field(default_factory=list, description="Suggested response or mitigation strategies")

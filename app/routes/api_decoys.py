@@ -121,12 +121,17 @@ async def get_attack_summary(
     if not sess:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     
-    requests_data = [RequestInfoSchema.from_orm(r).dict() for r in sess.requests]
+    # Send only the last 50 requests and only essential info (no heavy headers/bodies)
+    recent_requests = sess.requests[-50:] if len(sess.requests) > 50 else sess.requests
+    requests_data = [
+        {"method": r.method, "path": r.path, "time": str(r.timestamp)} 
+        for r in recent_requests
+    ]
+    
     session_data = [{
-        "id": sess.id,
-        "ip_address": sess.ip_address,
+        "ip": sess.ip_address,
         "tags": sess.tags,
-        "requests": requests_data
+        "activity": requests_data
     }]
     
     summary = await summarize_session(session_data)
@@ -214,12 +219,8 @@ async def get_decoy(
     
     Response: DecoyAssetSchema
     """
-    try:
-        decoy_uuid = UUID(decoy_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid decoy_id format")
-    
-    stmt = select(DecoyAsset).where(DecoyAsset.id == decoy_uuid)
+    # Query by string ID (DB stores as String(36), not UUID)
+    stmt = select(DecoyAsset).where(DecoyAsset.id == decoy_id)
     result = await session.execute(stmt)
     decoy = result.scalar_one_or_none()
     

@@ -40,7 +40,19 @@ async def summarize_session(session_data: List[dict]) -> ForensicSummary:
     """
     Takes a structured view of the session (list of requests + tags)
     and returns a concise security-analyst-style summary.
+    
+    Includes fallback if LLM is unavailable.
     """
-    prompt = build_forensic_summary_prompt(session_data)
-    summary = await call_llm(prompt, schema_class=ForensicSummary)
-    return summary
+    try:
+        prompt = build_forensic_summary_prompt(session_data)
+        summary = await call_llm(prompt, schema_class=ForensicSummary)
+        return summary
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"AI session summarization failed: {e}")
+        return ForensicSummary(
+            headline="AI Analysis Unavailable",
+            description="The automated threat analysis engine could not be reached to process this session.",
+            suspected_techniques=["Communication failure with AI backend"],
+            recommendations=["Check your LLM_BASE_URL and model availability in the .env file."]
+        )

@@ -55,6 +55,7 @@
                 <td><span class="mono">${s.request_count}</span></td>
                 <td>${DeceptraUI.automatedBadge(s.is_automated)}</td>
                 <td>${DeceptraUI.tagBadges(s.tags)}</td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${DeceptraUI.escapeHtml(s.user_agent || '')}">${DeceptraUI.escapeHtml(s.user_agent || 'Unknown')}</td>
             </tr>`).join('');
     }
 

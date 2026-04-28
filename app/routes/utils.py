@@ -54,7 +54,7 @@ async def log_request_to_db(
         session: SQLAlchemy async session
     """
     try:
-        print(f"\n🟡 LOG_REQUEST called for {ip} {method} {path}")
+        print(f"\n[LOG] LOG_REQUEST called for {ip} {method} {path}")
         logger.info(f"[LOG_REQUEST] Starting log for {ip} {method} {path}")
         
         # Find or create session by IP

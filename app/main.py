@@ -36,10 +36,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app):
         super().__init__(app)
-        print("\n🟢 RequestLoggingMiddleware initialized!")
+        print("\n[INFO] RequestLoggingMiddleware initialized!")
 
     async def dispatch(self, request: Request, call_next):
-        print(f"\n🔴 MIDDLEWARE CALLED: {request.method} {request.url.path}")
+        print(f"\n[REQUEST] MIDDLEWARE CALLED: {request.method} {request.url.path}")
         start_time = time.time()
         logger.info(f"[MIDDLEWARE] Intercepting {request.method} {request.url.path}")
 
@@ -104,22 +104,22 @@ async def lifespan(app: FastAPI):
     Shutdown:
     - Close database connections
     """
-    print(f"🚀 Starting {settings.app_name} v{settings.app_version}...")
+    print(f"[*] Starting {settings.app_name} v{settings.app_version}...")
     await init_db()
-    print("✅ Database initialized")
+    print("[OK] Database initialized")
     
     from app.core.database import async_session_maker
     from app.decoys.spider_traps import register_spider_trap
     async with async_session_maker() as session:
         await register_spider_trap(session, "/hidden/admin-portal", "Default admin portal trap")
         await register_spider_trap(session, "/robots-bait", "Default robots.txt bait trap")
-    print("✅ Default spider traps registered")
+    print("[OK] Default spider traps registered")
     
     yield
     
-    print("🛑 Shutting down...")
+    print("[SHUTDOWN] Shutting down...")
     await close_db()
-    print("✅ Database closed")
+    print("[OK] Database closed")
 
 
 # Create FastAPI application

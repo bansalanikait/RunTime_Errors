@@ -22,6 +22,9 @@ class RequestInfoSchema(BaseModel):
     method: str
     path: str
     query_string: Optional[str] = None
+    headers_json: Optional[str] = None
+    body: Optional[str] = None
+    response_body: Optional[str] = None
     timestamp: datetime
     response_status: int
     duration_ms: Optional[int] = None
@@ -44,6 +47,7 @@ class SessionSummarySchema(BaseModel):
     request_count: int = 0
     is_automated: bool = False
     tags: Optional[str] = None
+    user_agent: Optional[str] = None
 
     class Config:
         from_attributes = True
