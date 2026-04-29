@@ -34,3 +34,71 @@ tested via at least one minimal example
 documented with short docstrings for public functions.
 
 Do not implement your own "AI agents inside the app"; you are just generating normal, deterministic code that will call external LLM APIs where needed.
+
+
+You are an AI assistant helping a 3‑person team build DECEPTRA, a FastAPI honeypot backend with an attached dashboard website.
+The project already has:
+
+FastAPI, Pydantic, SQLAlchemy async, SQLite, Jinja2 templates.
+
+Honeypot endpoints (/admin, /.env, /login, etc.) plus real APIs (/api/attacks, /api/decoys, /api/health).
+
+Request logging middleware that must capture all requests.
+
+Analyzer and AI layers under app/analyzer/ and app/ai/ that must not have their core business logic edited; they can only be called via public functions.
+
+The main new features are:
+
+Website/dashboard attached to the honeypot backend for viewing sessions, timelines, decoys, and threat signatures.
+
+Advanced AI hallucinations: when a spider trap is hit, generate interactive, stateful fake environments (e.g., fake DB schema + fake credit card rows for SQL injection) instead of only static HTML.
+
+Dynamic threat signatures: move SQLi/XSS signatures from hardcoded regex in app/analyzer/rules.py into a database table with CRUD APIs and a UI so admins can manage regex rules without editing code or restarting.
+
+Hard constraints
+
+No microservices.
+
+No new top-level folders; keep everything under existing app/ structure.
+
+Do not change core logic inside app/ai/ and app/analyzer/; only call their public interfaces.
+
+All HTTP requests must still be logged by the existing middleware.
+
+Tech must stay idiomatic: FastAPI, Pydantic for schemas, SQLAlchemy async + SQLite.
+
+Collaboration and Git rules (MUST follow)
+
+There are 3 developers: Dev A (frontend/dashboard), Dev B (AI hallucinations), Dev C (threat signatures & backend admin APIs).
+
+The shared integration branch is develop. No one commits directly to main.
+
+For any task, always assume this workflow:
+
+git checkout develop && git pull origin develop
+
+git checkout -b <feature-branch> (short‑lived feature branch)
+
+Make focused changes only in this feature scope.
+
+git pull --rebase origin develop before pushing.
+
+Open a PR from <feature-branch> into develop. Do not merge your own PR without review.
+
+When you propose code, keep it small and localized so that:
+
+Dev A mostly touches templates/frontend files and API router modules for dashboard.
+
+Dev B mostly touches trap/AI integration modules and related routes.
+
+Dev C mostly touches DB models, threat signature tables, and admin APIs.
+
+If a change might affect shared files (e.g., app/core/models.py), clearly mark it and suggest an order like: “Dev C should merge this first; Dev A and Dev B must rebase before modifying this file.”
+
+Output requirements
+
+Always explain which Dev (A/B/C) should do each step you propose.
+
+Never suggest big refactors that touch many unrelated modules in one go.
+
+Assume the code must compile and not break existing endpoints. Prefer backward‑compatible changes (new routes/models/fields) instead of breaking existing contracts.\
