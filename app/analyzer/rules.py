@@ -6,6 +6,37 @@ import re
 SQLI_PATTERN = re.compile(r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|OR 1=1)\b)|(--)", re.IGNORECASE)
 XSS_PATTERN = re.compile(r"(<script>|javascript:|onerror=)", re.IGNORECASE)
 
+# Dynamic rules cache
+_DYNAMIC_RULES = {
+    "payload": [],
+    "path": [],
+    "header": []
+}
+
+def load_signatures_from_db(signatures: list):
+    """
+    Reloads the dynamic rules cache from a list of ThreatSignature objects.
+    """
+    global _DYNAMIC_RULES
+    new_rules = {"payload": [], "path": [], "header": []}
+    
+    for sig in signatures:
+        if not getattr(sig, "is_active", True):
+            continue
+            
+        try:
+            pattern = re.compile(getattr(sig, "pattern", ""), re.IGNORECASE)
+            target = getattr(sig, "target", "payload")
+            tag = getattr(sig, "threat_tag", "dynamic_threat")
+            
+            if target in new_rules:
+                new_rules[target].append((pattern, tag))
+        except re.error:
+            # Skip invalid regexes
+            pass
+            
+    _DYNAMIC_RULES = new_rules
+
 # Common recon paths
 RECON_PATHS = {
     "/.env", "/wp-login.php", "/wp-admin", "/admin", "/phpinfo.php", 
@@ -31,6 +62,16 @@ def analyze_request(request_method: str, path: str, query_string: str, body: str
         
     if XSS_PATTERN.search(payload):
         tags.append("xss_attempt")
+        
+    # Apply dynamic payload rules
+    for pattern, tag in _DYNAMIC_RULES.get("payload", []):
+        if pattern.search(payload):
+            tags.append(tag)
+            
+    # Apply dynamic path rules
+    for pattern, tag in _DYNAMIC_RULES.get("path", []):
+        if pattern.search(path):
+            tags.append(tag)
         
     return tags
 

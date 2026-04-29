@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from app.core.settings import settings
 from app.core.database import init_db, close_db
 from app.routes.utils import log_request_to_db
-from app.routes import honeypots, api_decoys
+from app.routes import honeypots, api_decoys, api_signatures
 from app.routes import dashboard as dashboard_routes
 
 
@@ -110,9 +110,20 @@ async def lifespan(app: FastAPI):
     
     from app.core.database import async_session_maker
     from app.decoys.spider_traps import register_spider_trap
+    from app.core.models import ThreatSignature
+    from sqlalchemy.future import select
+    from app.analyzer.rules import load_signatures_from_db
+    
     async with async_session_maker() as session:
         await register_spider_trap(session, "/hidden/admin-portal", "Default admin portal trap")
         await register_spider_trap(session, "/robots-bait", "Default robots.txt bait trap")
+        
+        # Load dynamic threat signatures
+        result = await session.execute(select(ThreatSignature).where(ThreatSignature.is_active == True))
+        signatures = result.scalars().all()
+        load_signatures_from_db(signatures)
+        print(f"[OK] Loaded {len(signatures)} dynamic threat signatures")
+        
     print("[OK] Default spider traps registered")
     
     yield
@@ -147,6 +158,7 @@ app.mount("/static", StaticFiles(directory=str(settings.base_path / "static")), 
 
 # Register routers
 app.include_router(api_decoys.router)
+app.include_router(api_signatures.router)
 app.include_router(dashboard_routes.router)
 app.include_router(honeypots.router)
 

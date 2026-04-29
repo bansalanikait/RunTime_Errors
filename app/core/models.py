@@ -106,3 +106,22 @@ class DecoyAsset(Base):
 
     def __repr__(self):
         return f"<DecoyAsset(name={self.name}, type={self.asset_type})>"
+
+
+class ThreatSignature(Base):
+    """
+    Dynamic threat signatures to detect malicious patterns in requests.
+    Loaded at runtime by the analyzer.
+    """
+    __tablename__ = "threat_signatures"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    name = Column(String(100), unique=True, index=True, nullable=False)
+    pattern = Column(String(1000), nullable=False)  # regex pattern
+    target = Column(String(50), nullable=False, default="payload")  # 'payload', 'path', 'header'
+    threat_tag = Column(String(100), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<ThreatSignature(name={self.name}, target={self.target})>"
