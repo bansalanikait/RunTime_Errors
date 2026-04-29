@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Decoy Asset Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Decoy Asset Management</h2>
+    <p>Manage dynamic spider traps and deceptive endpoints</p>
+</div>
+
+<div class="page-body">
+    <div class="card fade-in" style="margin-bottom: 20px;">
+        <h3>Create New Decoy</h3>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <input type="text" id="new-decoy-path" placeholder="/hidden/admin-portal" class="filter-input" style="flex: 1;">
+            <select id="new-decoy-type" class="filter-select">
+                <option value="html">HTML Mock</option>
+                <option value="json">JSON API</option>
+                <option value="file">Fake File</option>
+            </select>
+            <button id="btn-create-decoy" class="btn btn-primary">➕ Deploy Decoy</button>
+        </div>
+        <div id="decoy-create-status" style="margin-top: 10px; font-size: 0.9em;"></div>
+    </div>
+
+    <!-- Decoys Table -->
+    <div class="table-container fade-in">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Decoy Path</th>
+                    <th>Response Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="decoys-table-body">
+                <tr><td colspan="3"><div class="skeleton skeleton-row"></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/decoys.js"></script>
+{% endblock %}

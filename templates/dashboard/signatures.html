@@ -1,0 +1,48 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Threat Signatures{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Threat Signatures (Coming Soon)</h2>
+    <p>Manage the deterministic Regex rules engine for the Analyzer</p>
+</div>
+
+<div class="page-body">
+    <div class="card fade-in" style="margin-bottom: 20px;">
+        <h3>Add Custom Threat Signature</h3>
+        <p style="color: #aaa; margin-bottom: 15px;">Pending backend API implementation by Dev C.</p>
+        <div style="display: flex; gap: 10px; opacity: 0.5; pointer-events: none;">
+            <input type="text" placeholder="Rule Name (e.g., SQLi Basic)" class="filter-input" style="flex: 1;">
+            <input type="text" placeholder="Regex Pattern" class="filter-input" style="flex: 2;">
+            <select class="filter-select">
+                <option value="high">High Severity</option>
+                <option value="medium">Medium Severity</option>
+                <option value="low">Low Severity</option>
+            </select>
+            <button class="btn btn-primary" disabled>➕ Add Rule</button>
+        </div>
+    </div>
+
+    <!-- Signatures Table -->
+    <div class="table-container fade-in">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Rule Name</th>
+                    <th>Pattern Regex</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="signatures-table-body">
+                <tr><td colspan="4"><div class="skeleton skeleton-row"></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/signatures.js"></script>
+{% endblock %}

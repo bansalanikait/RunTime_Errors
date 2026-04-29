@@ -38,3 +38,21 @@ async def session_detail(request: Request, session_id: str):
             "session_id": session_id,
         },
     )
+
+
+@router.get("/decoys", include_in_schema=False)
+async def decoys_list(request: Request):
+    """Render the decoy asset management page."""
+    return templates.TemplateResponse(
+        "dashboard/decoys.html",
+        {"request": request, "active_page": "decoys"},
+    )
+
+
+@router.get("/signatures", include_in_schema=False)
+async def signatures_list(request: Request):
+    """Render the threat signature management page."""
+    return templates.TemplateResponse(
+        "dashboard/signatures.html",
+        {"request": request, "active_page": "signatures"},
+    )
