@@ -24,6 +24,16 @@ Respond ONLY with valid JSON matching the required schema.
 
 def build_fake_response_prompt(decoy_type: str, request_details: dict, site_profile: SiteProfile) -> str:
     req_str = str(request_details)
+    threat_tags = request_details.get("threat_tags", [])
+    
+    context_instructions = ""
+    if "sqli_attempt" in threat_tags:
+        context_instructions = "The attacker is attempting an SQL Injection. Generate a fake database dump containing sensitive-looking mock data (e.g., fake credit card numbers, passwords, or schema errors) to keep them engaged."
+    elif "xss_attempt" in threat_tags:
+        context_instructions = "The attacker is attempting Cross-Site Scripting (XSS). Generate a mock web page that appears to successfully reflect the attacker's script payload to waste their time."
+    elif "recon_probe" in threat_tags:
+        context_instructions = "The attacker is probing for sensitive files. Generate a fake configuration file, exposed environment variables, or debug traceback."
+    
     return f"""You are a master at generating realistic mock responses for a deception system.
 Target Application Profile:
 - Theme: {site_profile.theme}
@@ -32,6 +42,8 @@ Target Application Profile:
 We need to generate the body (HTML or JSON) for a decoy of type: "{decoy_type}".
 The attacker sent the following request:
 {req_str}
+
+{context_instructions}
 
 Return ONLY the raw body content for the response. Do NOT use markdown code blocks like ```html. Return exactly what should be served over HTTP.
 """

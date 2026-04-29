@@ -377,7 +377,24 @@ async def catch_all_honeypot(request: Request, full_path: str):
             # AI Hallucination layer
             from app.ai.generator import generate_fake_response
             from app.ai.schemas import SiteProfile
+            from app.analyzer.rules import analyze_request
             import logging
+            
+            # Extract body to analyze
+            body_bytes = b""
+            try:
+                body_bytes = await request.body()
+            except Exception:
+                pass
+            body_str = body_bytes.decode("utf-8", errors="ignore")
+            
+            # Analyze for specific attacks to tailor the hallucination
+            threat_tags = analyze_request(
+                request.method, 
+                path, 
+                str(request.url.query), 
+                body_str
+            )
             
             dummy_profile = SiteProfile(
                 name="Corporate Admin Portal",
@@ -389,7 +406,8 @@ async def catch_all_honeypot(request: Request, full_path: str):
             req_details = {
                 "method": request.method,
                 "path": path,
-                "headers": dict(request.headers)
+                "headers": dict(request.headers),
+                "threat_tags": threat_tags
             }
             
             try:

@@ -8,7 +8,7 @@ from typing import List, Optional
 import re
 import logging
 
-from app.core.database import get_db
+from app.core.database import get_session
 from app.core.models import ThreatSignature
 from app.analyzer.rules import load_signatures_from_db
 
@@ -49,13 +49,13 @@ async def refresh_analyzer_cache(db: AsyncSession):
     load_signatures_from_db(active_sigs)
 
 @router.get("", response_model=List[ThreatSignatureResponse])
-async def get_signatures(db: AsyncSession = Depends(get_db)):
+async def get_signatures(db: AsyncSession = Depends(get_session)):
     """Retrieve all dynamic threat signatures."""
     result = await db.execute(select(ThreatSignature))
     return result.scalars().all()
 
 @router.post("", response_model=ThreatSignatureResponse, status_code=status.HTTP_201_CREATED)
-async def create_signature(signature: ThreatSignatureCreate, db: AsyncSession = Depends(get_db)):
+async def create_signature(signature: ThreatSignatureCreate, db: AsyncSession = Depends(get_session)):
     """Create a new dynamic threat signature."""
     # Validate regex pattern
     try:
@@ -85,7 +85,7 @@ async def create_signature(signature: ThreatSignatureCreate, db: AsyncSession = 
     return new_sig
 
 @router.delete("/{sig_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_signature(sig_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_signature(sig_id: str, db: AsyncSession = Depends(get_session)):
     """Delete a dynamic threat signature."""
     result = await db.execute(select(ThreatSignature).where(ThreatSignature.id == sig_id))
     sig = result.scalars().first()

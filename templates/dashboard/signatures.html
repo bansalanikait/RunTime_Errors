@@ -11,17 +11,20 @@
 <div class="page-body">
     <div class="card fade-in" style="margin-bottom: 20px;">
         <h3>Add Custom Threat Signature</h3>
-        <p style="color: #aaa; margin-bottom: 15px;">Pending backend API implementation by Dev C.</p>
-        <div style="display: flex; gap: 10px; opacity: 0.5; pointer-events: none;">
-            <input type="text" placeholder="Rule Name (e.g., SQLi Basic)" class="filter-input" style="flex: 1;">
-            <input type="text" placeholder="Regex Pattern" class="filter-input" style="flex: 2;">
-            <select class="filter-select">
+        <p style="color: #aaa; margin-bottom: 15px;">Dynamically update the regex analyzer engine in real-time.</p>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="new-sig-name" placeholder="Rule Name (e.g., SQLi Basic)" class="filter-input" style="flex: 1;">
+            <input type="text" id="new-sig-pattern" placeholder="Regex Pattern" class="filter-input" style="flex: 2;">
+            <input type="text" id="new-sig-target" placeholder="Target (e.g., query, path)" class="filter-input" style="flex: 1;">
+            <select id="new-sig-severity" class="filter-select">
                 <option value="high">High Severity</option>
                 <option value="medium">Medium Severity</option>
                 <option value="low">Low Severity</option>
             </select>
-            <button class="btn btn-primary" disabled>➕ Add Rule</button>
+            <input type="text" id="new-sig-type" placeholder="Threat Tag (e.g., sqli)" class="filter-input" style="flex: 1;">
+            <button id="btn-add-sig" class="btn btn-primary">➕ Add Rule</button>
         </div>
+        <div id="sig-create-status" style="margin-top: 10px; font-size: 0.9em;"></div>
     </div>
 
     <!-- Signatures Table -->
