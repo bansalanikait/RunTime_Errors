@@ -11,7 +11,7 @@ Before running the system, ensure your environment is configured properly.
 
 1. **Activate your virtual environment:**
    ```bash
-   myenv/Scripts/Activate
+   myenv\Scripts\activate
    ```
 2. **Configure AI Settings:**
    Open the `.env` file in the root directory and define your LLM settings. You can use OpenAI or local models like Ollama.
