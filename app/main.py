@@ -74,6 +74,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             async with async_session_maker() as session:
                 is_trap_hit = getattr(request.state, "is_trap_hit", False)
+                response_body = getattr(request.state, "response_body", None)
                 await log_request_to_db(
                     ip=request.client.host if request.client else "unknown",
                     method=request.method,
@@ -85,6 +86,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     duration_ms=duration_ms,
                     session=session,
                     is_trap_hit=is_trap_hit,
+                    response_body=response_body,
                 )
             logger.info(f"[MIDDLEWARE] Successfully logged request")
         except Exception as e:

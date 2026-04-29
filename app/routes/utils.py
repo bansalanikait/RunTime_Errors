@@ -35,6 +35,7 @@ async def log_request_to_db(
     duration_ms: int,
     session: AsyncSession,
     is_trap_hit: bool = False,
+    response_body: str = None,
 ) -> None:
     """
     Log an HTTP request to the database.
@@ -52,6 +53,7 @@ async def log_request_to_db(
         status: HTTP response status code
         duration_ms: Request processing duration in milliseconds
         session: SQLAlchemy async session
+        response_body: Optional response body content to store
     """
     try:
         print(f"\n[LOG] LOG_REQUEST called for {ip} {method} {path}")
@@ -96,6 +98,7 @@ async def log_request_to_db(
             headers_json=json.dumps(sanitize_headers(headers)),
             body=body[:10000] if body else None,
             response_status=status,
+            response_body=response_body,
             duration_ms=duration_ms,
             timestamp=datetime.utcnow(),
             is_trap_hit=is_trap_hit,

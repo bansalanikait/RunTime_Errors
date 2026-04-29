@@ -412,6 +412,7 @@ async def catch_all_honeypot(request: Request, full_path: str):
             
             try:
                 ai_html = await generate_fake_response("spider_trap_hit", req_details, dummy_profile)
+                request.state.response_body = ai_html
                 return HTMLResponse(content=ai_html, status_code=200)
             except Exception as e:
                 logging.getLogger(__name__).error(f"AI trap generation failed: {e}")
